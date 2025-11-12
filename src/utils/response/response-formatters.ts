@@ -1,4 +1,4 @@
-import { STATUS_CODES } from "./responseCode";
+import { STATUS_CODES } from "./response-code";
 
 export const createSuccessResponse = (
   res: any,
@@ -8,9 +8,9 @@ export const createSuccessResponse = (
   status: string = STATUS_CODES.ok.name
 ) => {
   return res.status(statusCode).json({
-    StatusCode:statusCode,
-    Status:status,
-    Success: true,
+    statusCode,
+    status,
+    success: true,
     message,
     data,
   });
@@ -24,9 +24,9 @@ export const createErrorResponse = (
   errors: any = null
 ) => {
   return res.status(statusCode).json({
-    StatusCode:statusCode,
-    Status:status,
-    Success: false,
+    statusCode,
+    status,
+    success: false,
     message,
     errors,
   });

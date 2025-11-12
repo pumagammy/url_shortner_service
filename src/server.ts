@@ -1,7 +1,7 @@
 import { connectDB } from './config/db';
 import express ,{ Application, NextFunction } from "express";
 import dotenv from "dotenv";
-import urlRoutes from "./routes/urlRoute";
+import urlRoutes from "./routes/url-route";
 
 //load .env variables
 dotenv.config();

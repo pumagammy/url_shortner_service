@@ -1,8 +1,7 @@
 import express from "express";
-import {
-  createShortCode,
-  redirectToOriginal,
-} from "../controllers/createShortcode";
+import { createShortCode } from "../controllers/create-shortcode";
+import { getRedirectToOriginalUrl } from "../controllers/redirect-original-url";
+
 
 const router = express.Router();
 
@@ -13,8 +12,8 @@ router.post("/create-shortUrl", async (req, res) => {
 
 // always redirect route should be at the end to avoid conflicts with other routes
 router.get("/:shortCode", async (req, res) => {
-  const getRedirectToOriginalUrl = await redirectToOriginal(req, res);
-  return getRedirectToOriginalUrl;
+  const redirectToOriginalUrl = await getRedirectToOriginalUrl(req, res);
+  return redirectToOriginalUrl;
 });
 
 export default router;
