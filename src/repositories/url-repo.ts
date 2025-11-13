@@ -4,7 +4,6 @@ import { generateShortCode } from "../utils/short-code-utils/generate-shortcode"
 
 export const UrlRepo = {
   async findByShortCode(shortCode: string) {
-    console.log('shortCode',shortCode)
     return UrlModel.findOne({ shortCode });
   },
 

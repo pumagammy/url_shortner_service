@@ -6,6 +6,7 @@ import { getRedirectToOriginalUrl } from "../controllers/redirect-original-url";
 const router = express.Router();
 
 router.post("/create-shortUrl", async (req, res) => {
+  
   const createShortUrl = await createShortCode(req, res);
   return createShortUrl;
 });

@@ -54,7 +54,7 @@ export const UrlService = {
     // Increment click count
     urlEntry.clicks += 1;
     await urlEntry.save();
-console.log("==>Original URL:", urlEntry.originalUrl);
+
     return  urlEntry.originalUrl;
 
   }
