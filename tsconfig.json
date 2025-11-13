@@ -6,9 +6,13 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "noImplicitAny": false,
     "skipLibCheck": true,
-    "types": ["node"]
+    "noImplicitAny": false,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "typeRoots": ["./node_modules/@types"],   
+    "types": ["node"]                        
   },
   "include": ["src"]
 }
+
