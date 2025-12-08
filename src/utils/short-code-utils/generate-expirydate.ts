@@ -1,33 +1,44 @@
 
 /**
- * Calculates an expiry date for a short URL.
- *
- * @param expiryDays - Number of days from now until expiry
- * @param expiryDateInput - Optional explicit expiry date (string or Date)
- * @returns Date | null  → null means "no expiry"
- * @throws Error if expiryDateInput is invalid or in the past
+ * getExpiryDate
+ * - If both expiryDate (e.g. "2025-11-23") and expiryTime (e.g. "14:30" or "14:30:00") are provided,
+ *   combines them into a single Date (UTC/local depends on input; using ISO-like string).
+ * - If expiryTime is a numeric string/number, treats it as minutes from now.
+ * - Returns undefined when no valid expiry provided.
  */
-export function getExpiryDate(
-  expiryDays?: number,
-  expiryDateInput?: string | Date
-): Date | null {
-  // Case 1: expiryDays provided and valid
-  if (typeof expiryDays === "number" && expiryDays > 0) {
-    return new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+export function getExpiryDate(expiryTime?: string | number, expiryDate?: string): Date | undefined {
+  if (expiryDate && expiryTime) {
+    // expiryDate expected like "YYYY-MM-DD", expiryTime like "HH:mm" or "HH:mm:ss" (24h)
+    const combinedIso = `${expiryDate}T${String(expiryTime)}`;
+    const d = new Date(combinedIso);
+    if (!isNaN(d.getTime())) return d;
+    // try with a space separator (in case input expects local parse)
+    const d2 = new Date(`${expiryDate} ${String(expiryTime)}`);
+    if (!isNaN(d2.getTime())) return d2;
   }
 
-  // Case 2: explicit expiry date provided
-  if (expiryDateInput) {
-    const dt = new Date(expiryDateInput);
-    if (isNaN(dt.getTime())) {
-      throw new Error("Invalid expiryDate format");
+  // If expiryTime is numeric (minutes from now)
+  if (expiryTime !== undefined && expiryTime !== null) {
+    const num = typeof expiryTime === "number" ? expiryTime : parseInt(String(expiryTime), 10);
+    if (!Number.isNaN(num)) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + num);
+      return now;
     }
-    if (dt <= new Date()) {
-      throw new Error("expiryDate must be in the future");
-    }
-    return dt;
   }
 
-  // Case 3: no expiry → return null
-  return null;
+  return undefined;
+}
+
+export function isValidUrl(originalUrl: string): boolean {
+  if (typeof originalUrl !== "string") return false;
+  const trimmed = originalUrl.trim();
+  if (!trimmed) return false;
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }

@@ -1,12 +1,15 @@
 
-import crypto from 'crypto';
-export const generateShortCode = (): string => {
-    return crypto.randomBytes(4).toString('hex');
-}
- 
-export const CODE_REGEX = /^[A-Za-z0-9_-]{3,20}$/
+import { ulid } from "ulid";
 
-export const isValidUrl = (url: string) => {
-  try { new URL(url); return true; } catch { return false; }
+/**
+ * Generates a full ULID and a 6-char shortCode derived from it.
+ *  - ulid: globally unique (time + randomness)
+ *  - shortCode: last 6 chars of ULID (you can choose first 6 if you prefer)
+ */
+export const generateUniqueIdAndShortCode = () => {
+  const id = ulid(); 
+  const shortCode = id.slice(-6); 
+
+  return { ulidId: id, shortCode };
 };
 

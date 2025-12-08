@@ -6,7 +6,7 @@ const response_message_1 = require("../utils/response/response-message");
 const generate_expirydate_1 = require("../utils/short-code-utils/generate-expirydate");
 const generate_shortcode_1 = require("../utils/short-code-utils/generate-shortcode");
 exports.UrlService = {
-    async createShortCode({ originalUrl, customizedCode, expiryDays, expiryDate }) {
+    async createShortCode({ originalUrl, customizedCode, expiryDate, expiryTime, neverExpires }) {
         if (!originalUrl || !(0, generate_shortcode_1.isValidUrl)(originalUrl)) {
             throw new Error(response_message_1.INVALID_DATA);
         }
@@ -27,13 +27,14 @@ exports.UrlService = {
         if (!base)
             throw new Error(response_message_1.INTERNAL_SERVER_ERROR_MESSAGE);
         const shortUrl = `${base}/${shortCode}`;
-        const expiresAt = (0, generate_expirydate_1.getExpiryDate)(expiryDays, expiryDate);
+        const expiresAt = (0, generate_expirydate_1.getExpiryDate)(expiryTime, expiryDate);
         return await url_repo_1.UrlRepo.create({
             originalUrl,
             shortCode,
             shortUrl,
             expiresAt,
             customizedCode,
+            isExpires: neverExpires ? false : true
         });
     },
     async redirectToOriginal(shortCode) {

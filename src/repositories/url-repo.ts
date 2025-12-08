@@ -1,24 +1,18 @@
-import { UrlModel } from "../models/url-schems";
-import { generateShortCode } from "../utils/short-code-utils/generate-shortcode";
+import { Iurl, UrlModel } from "../models/url-schems";
 
 
 export const UrlRepo = {
-  async findByShortCode(shortCode: string) {
-    return UrlModel.findOne({ shortCode });
+  async findByShortCode(guid: string): Promise<Iurl | null> {
+    return UrlModel.findOne({ guid }).exec();
   },
 
-  async generateUniqueShortCode() {
-    let attempts = 0;
-    while (attempts < 5) {
-      const code = generateShortCode();
-      const exists = await UrlModel.exists({ shortCode: code });
-      if (!exists) return code;
-      attempts++;
-    }
-    throw new Error("Failed to generate unique short code");
+  async existsByUniqueId(guid: string): Promise<boolean> {
+    const exists = await UrlModel.exists({ guid });
+    return !!exists;
   },
 
-  async create(data: any) {
-    return UrlModel.create(data);
+  async createUrl(data: Partial<Iurl>): Promise<Iurl> {
+    const doc = new UrlModel(data);
+    return doc.save();
   },
 };
