@@ -2,12 +2,12 @@ import { Iurl, UrlModel } from "../models/url-schems";
 
 
 export const UrlRepo = {
-  async findByShortCode(guid: string): Promise<Iurl | null> {
-    return UrlModel.findOne({ guid }).exec();
+  async findByShortCode(shortCode: string): Promise<Iurl | null> {
+    return UrlModel.findOne({ shortCode }).exec();
   },
 
-  async existsByUniqueId(guid: string): Promise<boolean> {
-    const exists = await UrlModel.exists({ guid });
+  async existsByShortCode(shortCode: string): Promise<boolean> {
+    const exists = await UrlModel.exists({ shortCode });
     return !!exists;
   },
 
