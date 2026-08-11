@@ -5,6 +5,7 @@ import { getExpiryDate, isValidUrl } from "../utils/short-code-utils/generate-ex
 import {
   generateUniqueIdAndShortCode,
 } from "../utils/short-code-utils/generate-shortcode";
+import { UrlSafetyService } from "./url-safety-service";
 
 interface CreateShortUrlInput {
   originalUrl: string;
@@ -24,9 +25,14 @@ export const UrlService = {
       throw new Error("INVALID_URL");
     }
 
+    const base = process.env.URL_REDIRECT_BASE_URL?.replace(/\/+$/, "");
+    if (!base) throw new Error(INTERNAL_SERVER_ERROR_MESSAGE);
+
+    const safety = await UrlSafetyService.scanUrl(originalUrl);
+    const expiresAt = getExpiryDate(expiryTime ?? undefined, expiryDate ?? undefined) ?? null;
+
     let guid: string;
     let shortCode: string;
-    let expiresAt: Date | null | undefined;
 
     // If PREMIUM USER → CUSTOM CODE PATH
     if (isPremium && customCode) {
@@ -37,15 +43,25 @@ export const UrlService = {
       }
 
       // ensure custom shortCode uniqueness
-      const exists = await UrlRepo.existsByUniqueId(customCode);
+      const exists = await UrlRepo.existsByShortCode(customCode);
       if (exists) {
         throw new Error("CUSTOM_CODE_ALREADY_IN_USE");
       }
 
-      // premium custom code – generate guid only once
       const { ulidId } = generateUniqueIdAndShortCode();
       guid = ulidId;
       shortCode = customCode;
+
+      return UrlRepo.createUrl({
+        originalUrl,
+        guid,
+        shortCode,
+        shortUrl: `${base}/${shortCode}`,
+        customCode,
+        isPremium: true,
+        expiresAt,
+        ...safety,
+      });
     }
 
     // NORMAL USER → AUTO ULID SHORT CODE (6 chars)
@@ -55,39 +71,26 @@ export const UrlService = {
         guid = ulidId;
         shortCode = code;
 
-        const base = process.env.URL_REDIRECT_BASE_URL?.replace(/\/+$/, "");
-        if (!base) throw new Error(INTERNAL_SERVER_ERROR_MESSAGE);
-
         const shortUrl = `${base}/${shortCode}`;
-         expiresAt = getExpiryDate(expiryTime ?? undefined, expiryDate ?? undefined);
 
         try {
-          // try insert – uniqueness enforced by guid index
           return await UrlRepo.createUrl({
             originalUrl,
             guid,
             shortUrl,
             shortCode: shortCode.slice(0, 6),
-            expiresAt: expiresAt ?? null,
+            expiresAt,
+            ...safety,
           });
         } catch (err: any) {
-          // Only retry if duplicate guid error
-          if (err.code === 11000 && err.keyPattern?.guid) {
-            continue; // regenerate ULID
+          if (err.code === 11000 && (err.keyPattern?.guid || err.keyPattern?.shortCode)) {
+            continue;
           }
           throw err;
         }
       }
     }
 
-    // Insert for custom scenario
-    return await UrlRepo.createUrl({
-      originalUrl,
-      guid,
-      shortCode,
-      expiresAt: expiresAt ?? null,
-    });
   },
 };
-
 

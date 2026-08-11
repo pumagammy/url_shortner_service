@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
+import { AiSafetyAnalysis, RiskLevel, SafetyStatus } from "../services/url-safety-service";
 
 export interface Iurl extends Document {
   originalUrl: String;
@@ -13,6 +13,14 @@ export interface Iurl extends Document {
   expiresAt?: Date | null;
   isExpired?: boolean;
   isActive?: boolean;
+  safetyStatus: SafetyStatus;
+  trustScore: number;
+  riskLevel: RiskLevel;
+  riskSignals: string[];
+  safetyCheckedAt?: Date;
+  resolvedUrl?: string;
+  redirectChain: string[];
+  aiSafetyAnalysis?: AiSafetyAnalysis;
 }
 
 const UrlSchema: Schema = new mongoose.Schema<Iurl>(
@@ -28,6 +36,26 @@ const UrlSchema: Schema = new mongoose.Schema<Iurl>(
     expiresAt: { type: Date, default: null },
     isExpired: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+    safetyStatus: {
+      type: String,
+      // Retired values remain allowed only so older records can still be read safely.
+      enum: ["safe", "rating_unavailable", "suspicious", "unsafe", "not_rated", "unverified", "unknown"],
+      default: "rating_unavailable",
+      index: true,
+    },
+    trustScore: { type: Number, default: 0, min: 0, max: 100 },
+    riskLevel: { type: String, enum: ["low", "medium", "high", "critical"], default: "low" },
+    riskSignals: { type: [String], default: [] },
+    safetyCheckedAt: { type: Date },
+    resolvedUrl: { type: String, trim: true },
+    redirectChain: { type: [String], default: [] },
+    aiSafetyAnalysis: {
+      status: { type: String, enum: ["available", "unavailable"] },
+      verdict: { type: String, enum: ["safe", "suspicious", "unsafe"] },
+      confidence: { type: Number, min: 1, max: 10 },
+      reasons: { type: [String], default: [] },
+      error: { type: String },
+    },
   },
   { timestamps: true }
 );

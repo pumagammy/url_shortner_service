@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx --test src/test/url-safety-service.test.ts",
     "dev": "nodemon --watch src --exec \"npx tsx\" src/server.ts",
     "build": "tsc --noEmitOnError false",
     "start": "node dist/server.js",
