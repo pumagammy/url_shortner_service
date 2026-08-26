@@ -15,4 +15,7 @@ export const UrlRepo = {
     const doc = new UrlModel(data);
     return doc.save();
   },
+  async updateByGuid(guid: string, updates: Partial<Iurl>): Promise<Iurl | null> {
+    return UrlModel.findOneAndUpdate({ guid }, { $set: updates }, { new: true }).exec();
+  },
 };

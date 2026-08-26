@@ -26,5 +26,6 @@ export const getLinkSafety = async (req: any, res: any) => {
     resolvedUrl: url.resolvedUrl,
     redirectChain: url.redirectChain,
     aiSafetyAnalysis: url.aiSafetyAnalysis,
+    aiSafetyAnalysisStatus: url.aiSafetyAnalysisStatus,
   });
 };

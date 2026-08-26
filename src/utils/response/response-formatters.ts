@@ -21,7 +21,8 @@ export const createErrorResponse = (
   message: string = "Something went wrong",
   statusCode: number = STATUS_CODES.internalServerError.code,
   status: string = STATUS_CODES.internalServerError.name,
-  errors: any = null
+  errors: any = null,
+  data: any = null
 ) => {
   return res.status(statusCode).json({
     statusCode,
@@ -29,5 +30,6 @@ export const createErrorResponse = (
     success: false,
     message,
     errors,
+    data,
   });
 };

@@ -5,7 +5,7 @@ import { getExpiryDate, isValidUrl } from "../utils/short-code-utils/generate-ex
 import {
   generateUniqueIdAndShortCode,
 } from "../utils/short-code-utils/generate-shortcode";
-import { UrlSafetyService } from "./url-safety-service";
+import { UrlSafetyService, UrlSafetyResult, runBasicUrlChecks } from "./url-safety-service";
 
 interface CreateShortUrlInput {
   originalUrl: string;
@@ -13,7 +13,28 @@ interface CreateShortUrlInput {
   isPremium: boolean;
   expiryDate?: string | null;
   expiryTime?: string | null;
+}
 
+class UnsafeOrRiskyUrlError extends Error {
+  safetyResult: UrlSafetyResult;
+
+  constructor(message: string, safetyResult: UrlSafetyResult) {
+    super(message);
+    this.name = "UnsafeOrRiskyUrlError";
+    this.safetyResult = safetyResult;
+  }
+}
+
+function isUrlRisky(safety: UrlSafetyResult): boolean {
+  const TRUST_SCORE_THRESHOLD = 30;
+  // Block explicitly when the trust score is below threshold.
+  if (typeof safety.trustScore === "number" && safety.trustScore < TRUST_SCORE_THRESHOLD) {
+    return true;
+  }
+
+  // Only treat destinations with an explicit 'unsafe' verdict as risky.
+  // Allow 'rating_unavailable' or 'suspicious' when the trust score is acceptable.
+  return safety.safetyStatus === "unsafe";
 }
 
 export const UrlService = {
@@ -28,7 +49,34 @@ export const UrlService = {
     const base = process.env.URL_REDIRECT_BASE_URL?.replace(/\/+$/, "");
     if (!base) throw new Error(INTERNAL_SERVER_ERROR_MESSAGE);
 
-    const safety = await UrlSafetyService.scanUrl(originalUrl);
+    // Fast path: run local/basic checks (no network) to compute a provisional trust score.
+    const { score: basicScore, signals } = runBasicUrlChecks(originalUrl);
+    const provisionalTrustScore = Math.max(0, Math.min(100, 100 - basicScore - 25));
+
+    // If provisional score is below threshold, reject immediately.
+    if (provisionalTrustScore < 30) {
+      const provisionalSafety: UrlSafetyResult = {
+        safetyStatus: "rating_unavailable",
+        trustScore: provisionalTrustScore,
+        riskLevel: "medium",
+        riskSignals: signals,
+        safetyCheckedAt: new Date(),
+        redirectChain: [],
+      };
+      throw new UnsafeOrRiskyUrlError("Cannot generate short URL because this URL is unsafe or risky.", provisionalSafety);
+    }
+
+    const safetyPlaceholder: Partial<UrlSafetyResult> = {
+      safetyStatus: "rating_unavailable",
+      trustScore: provisionalTrustScore,
+      riskLevel: "medium",
+      riskSignals: signals,
+      safetyCheckedAt: new Date(),
+      redirectChain: [],
+      // New status flag used by frontend polling
+      aiSafetyAnalysisStatus: "analysing",
+    };
+
     const expiresAt = getExpiryDate(expiryTime ?? undefined, expiryDate ?? undefined) ?? null;
 
     let guid: string;
@@ -52,7 +100,7 @@ export const UrlService = {
       guid = ulidId;
       shortCode = customCode;
 
-      return UrlRepo.createUrl({
+      const created = await UrlRepo.createUrl({
         originalUrl,
         guid,
         shortCode,
@@ -60,8 +108,37 @@ export const UrlService = {
         customCode,
         isPremium: true,
         expiresAt,
-        ...safety,
+        ...safetyPlaceholder,
       });
+
+      // Start background full safety scan and update the record asynchronously.
+      (async () => {
+        try {
+          const fullSafety = await UrlSafetyService.scanUrl(originalUrl);
+          const updates: Partial<Iurl> = {
+            ...fullSafety,
+            aiSafetyAnalysisStatus: fullSafety.aiSafetyAnalysis?.status === "available" ? "completed" : "failed",
+          };
+          await UrlRepo.updateByGuid(guid, updates as Partial<Iurl>);
+          // If final result is unsafe or trustScore drops below threshold, mark inactive.
+          if (fullSafety.safetyStatus === "unsafe" || (typeof fullSafety.trustScore === "number" && fullSafety.trustScore < 30)) {
+            await UrlRepo.updateByGuid(guid, { isActive: false } as Partial<Iurl>);
+          }
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          console.error("Background safety scan failed for premium URL:", originalUrl, message);
+          try {
+            await UrlRepo.updateByGuid(guid, {
+              aiSafetyAnalysisStatus: "failed",
+              aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], error: message },
+            } as Partial<Iurl>);
+          } catch (err) {
+            // ignore persistence errors
+          }
+        }
+      })();
+
+      return created;
     }
 
     // NORMAL USER → AUTO ULID SHORT CODE (6 chars)
@@ -74,14 +151,41 @@ export const UrlService = {
         const shortUrl = `${base}/${shortCode}`;
 
         try {
-          return await UrlRepo.createUrl({
+          const created = await UrlRepo.createUrl({
             originalUrl,
             guid,
             shortUrl,
             shortCode: shortCode.slice(0, 6),
             expiresAt,
-            ...safety,
+            ...safetyPlaceholder,
           });
+
+          (async () => {
+            try {
+              const fullSafety = await UrlSafetyService.scanUrl(originalUrl);
+              const updates: Partial<Iurl> = {
+                ...fullSafety,
+                aiSafetyAnalysisStatus: fullSafety.aiSafetyAnalysis?.status === "available" ? "completed" : "failed",
+              };
+              await UrlRepo.updateByGuid(guid, updates as Partial<Iurl>);
+              if (fullSafety.safetyStatus === "unsafe" || (typeof fullSafety.trustScore === "number" && fullSafety.trustScore < 30)) {
+                await UrlRepo.updateByGuid(guid, { isActive: false } as Partial<Iurl>);
+              }
+            } catch (e) {
+              const message = e instanceof Error ? e.message : String(e);
+              console.error("Background safety scan failed for URL:", originalUrl, message);
+              try {
+                await UrlRepo.updateByGuid(guid, {
+                  aiSafetyAnalysisStatus: "failed",
+                  aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], error: message },
+                } as Partial<Iurl>);
+              } catch (err) {
+                // ignore persistence errors
+              }
+            }
+          })();
+
+          return created;
         } catch (err: any) {
           if (err.code === 11000 && (err.keyPattern?.guid || err.keyPattern?.shortCode)) {
             continue;
@@ -90,7 +194,6 @@ export const UrlService = {
         }
       }
     }
-
   },
 };
 

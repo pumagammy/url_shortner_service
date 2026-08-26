@@ -106,7 +106,18 @@ async function requestGeminiSafetyAnalysis(input: AiLinkSafetyInput): Promise<Ai
   const apiKey = process.env.GEMINI_API_KEY;
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   if (!apiKey) return { unavailableReason: "GEMINI_API_KEY is not configured" };
-  if (!input.pageText) return { unavailableReason: "Fetched page did not contain readable text for AI analysis" };
+
+  // If pageText is empty, synthesize a concise text from available metadata
+  // (title, resolvedUrl, redirectCount) so the AI still has context to analyze.
+  let effectivePageText = (input.pageText ?? "").trim();
+  if (!effectivePageText) {
+    const parts: string[] = [];
+    if (input.title) parts.push(`Title: ${input.title}`);
+    if (input.resolvedUrl) parts.push(`Resolved URL: ${input.resolvedUrl}`);
+    if (input.submittedUrl) parts.push(`Submitted URL: ${input.submittedUrl}`);
+    parts.push(`Redirect count: ${input.redirectCount}`);
+    effectivePageText = parts.join("\n");
+  }
 
   // Gemini structured output keeps the safety scanner from parsing free-form model text.
   const responseSchema = {
@@ -142,7 +153,7 @@ async function requestGeminiSafetyAnalysis(input: AiLinkSafetyInput): Promise<Ai
           role: "user",
           parts: [
             {
-              text: JSON.stringify(input),
+              text: JSON.stringify({ ...input, pageText: effectivePageText }),
             },
           ],
         },

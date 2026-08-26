@@ -21,6 +21,7 @@ export interface Iurl extends Document {
   resolvedUrl?: string;
   redirectChain: string[];
   aiSafetyAnalysis?: AiSafetyAnalysis;
+  aiSafetyAnalysisStatus?: "analysing" | "completed" | "failed";
 }
 
 const UrlSchema: Schema = new mongoose.Schema<Iurl>(
@@ -55,6 +56,12 @@ const UrlSchema: Schema = new mongoose.Schema<Iurl>(
       confidence: { type: Number, min: 1, max: 10 },
       reasons: { type: [String], default: [] },
       error: { type: String },
+    },
+    aiSafetyAnalysisStatus: {
+      type: String,
+      enum: ["analysing", "completed", "failed"],
+      default: "analysing",
+      index: true,
     },
   },
   { timestamps: true }
