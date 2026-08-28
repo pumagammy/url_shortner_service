@@ -2,6 +2,7 @@ import { connectDB } from './config/db';
 import express ,{ Application, NextFunction } from "express";
 import dotenv from "dotenv";
 import urlRoutes from "./routes/url-route";
+import authRoutes from "./routes/auth-route";
 import { corsMiddleware } from './middlewares/cors';
 
 //load .env variables
@@ -23,7 +24,12 @@ app.get("/health-check", (req, res) => {
 
 
 
-//use url routes
+// public routes
+app.use('/', authRoutes);
+app.get("/health-check", (req, res) => {
+  res.send({ message: "Server is healthy", status: "OK" });
+});
+
 app.use('/',urlRoutes)
 
 //global error handler

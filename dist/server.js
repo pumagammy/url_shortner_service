@@ -7,6 +7,7 @@ const db_1 = require("./config/db");
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const url_route_1 = __importDefault(require("./routes/url-route"));
+const auth_route_1 = __importDefault(require("./routes/auth-route"));
 const cors_1 = require("./middlewares/cors");
 //load .env variables
 dotenv_1.default.config();
@@ -21,7 +22,11 @@ app.use((0, cors_1.corsMiddleware)());
 app.get("/health-check", (req, res) => {
     res.send({ message: 'Server is healthy', status: 'OK' });
 });
-//use url routes
+// public routes
+app.use('/', auth_route_1.default);
+app.get("/health-check", (req, res) => {
+    res.send({ message: "Server is healthy", status: "OK" });
+});
 app.use('/', url_route_1.default);
 //global error handler
 app.use((err, req, res, next) => {

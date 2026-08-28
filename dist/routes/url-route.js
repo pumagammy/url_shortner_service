@@ -5,15 +5,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const create_shortcode_1 = require("../controllers/create-shortcode");
-const redirect_original_url_1 = require("../controllers/redirect-original-url");
+const get_link_safety_1 = require("../controllers/get-link-safety");
+const get_ai_analysis_1 = require("../controllers/get-ai-analysis");
+const authenticate_1 = require("../middlewares/auth/authenticate");
 const router = express_1.default.Router();
+router.use(authenticate_1.authenticateToken);
 router.post("/create-shortUrl", async (req, res) => {
     const createShortUrl = await (0, create_shortcode_1.createShortCode)(req, res);
     return createShortUrl;
 });
-// always redirect route should be at the end to avoid conflicts with other routes
-router.get("/:shortCode", async (req, res) => {
-    const redirectToOriginalUrl = await (0, redirect_original_url_1.getRedirectToOriginalUrl)(req, res);
-    return redirectToOriginalUrl;
-});
+router.get("/links/:shortCode/safety", get_link_safety_1.getLinkSafety);
+router.get("/links/:shortCode/ai-analysis", get_ai_analysis_1.getAiAnalysis);
 exports.default = router;

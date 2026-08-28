@@ -12,13 +12,14 @@ const createSuccessResponse = (res, data, message = "Success", statusCode = resp
     });
 };
 exports.createSuccessResponse = createSuccessResponse;
-const createErrorResponse = (res, message = "Something went wrong", statusCode = response_code_1.STATUS_CODES.internalServerError.code, status = response_code_1.STATUS_CODES.internalServerError.name, errors = null) => {
+const createErrorResponse = (res, message = "Something went wrong", statusCode = response_code_1.STATUS_CODES.internalServerError.code, status = response_code_1.STATUS_CODES.internalServerError.name, errors = null, data = null) => {
     return res.status(statusCode).json({
         statusCode,
         status,
         success: false,
         message,
         errors,
+        data,
     });
 };
 exports.createErrorResponse = createErrorResponse;

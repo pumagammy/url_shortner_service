@@ -15,6 +15,7 @@ export interface UrlSafetyResult {
   resolvedUrl?: string;
   redirectChain: string[];
   aiSafetyAnalysis?: AiSafetyAnalysis;
+  aiSafetyAnalysisStatus?: "analysing" | "completed" | "failed";
 }
 
 interface FetchedPage {

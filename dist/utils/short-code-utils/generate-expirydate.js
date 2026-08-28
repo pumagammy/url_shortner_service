@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getExpiryDate = getExpiryDate;
+exports.isValidUrl = isValidUrl;
 /**
  * getExpiryDate
  * - If both expiryDate (e.g. "2025-11-23") and expiryTime (e.g. "14:30" or "14:30:00") are provided,
@@ -30,4 +31,18 @@ function getExpiryDate(expiryTime, expiryDate) {
         }
     }
     return undefined;
+}
+function isValidUrl(originalUrl) {
+    if (typeof originalUrl !== "string")
+        return false;
+    const trimmed = originalUrl.trim();
+    if (!trimmed)
+        return false;
+    try {
+        const parsed = new URL(trimmed);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+    }
+    catch {
+        return false;
+    }
 }

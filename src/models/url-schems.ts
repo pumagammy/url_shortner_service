@@ -2,11 +2,12 @@ import mongoose, { Schema } from "mongoose";
 import { AiSafetyAnalysis, RiskLevel, SafetyStatus } from "../services/url-safety-service";
 
 export interface Iurl extends Document {
+  userId?: string | null;
   originalUrl: String;
   guid: string;
   shortCode: String;
   customCode: string;
-  shortUrl: String;
+  shortUrl: String | null;
   isPremium: boolean;
   clicks: number;
   createdAt: Date;
@@ -26,6 +27,12 @@ export interface Iurl extends Document {
 
 const UrlSchema: Schema = new mongoose.Schema<Iurl>(
   {
+    userId: {
+      type: String,
+      ref: "User",
+      default: null,
+      index: true,
+    },
     originalUrl: { type: String, required: true, trim: true },
     shortCode: { type: String, required: true, unique: true, index: true },
     shortUrl: { type: String, required: true, unique: true },
