@@ -8,6 +8,8 @@ import { corsMiddleware } from './middlewares/cors';
 //load .env variables
 dotenv.config();
 
+
+
 // initialize express
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
