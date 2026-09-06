@@ -271,6 +271,7 @@ exports.UrlSafetyService = {
             verdict: null,
             confidence: 1,
             reasons: [],
+            linkName: null,
             error: aiSafetyResult.unavailableReason ?? "AI analysis unavailable",
         };
         if (aiSafetyAnalysis.status === "available") {
@@ -289,6 +290,7 @@ exports.UrlSafetyService = {
             safetyCheckedAt: new Date(),
             resolvedUrl: page.finalUrl,
             redirectChain: page.redirectChain,
+            linkName: aiSafetyAnalysis.linkName,
             aiSafetyAnalysis,
         };
     },

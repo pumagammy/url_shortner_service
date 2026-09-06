@@ -6,7 +6,10 @@ import { CREATED_DATA, ERROR_MSG_SOMETHING_WENT_WRONG } from "../utils/response/
 
 export const createShortCode = async (req: any, res: any) => {
   try {
-    const result = await UrlService.createShortUrl(req.body);
+    const result = await UrlService.createShortUrl({
+      ...req.body,
+      userId: req.user?.userId,
+    });
     return createSuccessResponse(res, result, CREATED_DATA);
   } catch (err: any) {
     if (err?.safetyResult) {

@@ -25,6 +25,7 @@ export const getLinkSafety = async (req: any, res: any) => {
     safetyCheckedAt: url.safetyCheckedAt,
     resolvedUrl: url.resolvedUrl,
     redirectChain: url.redirectChain,
+    linkName: url.linkName ?? null,
     aiSafetyAnalysis: url.aiSafetyAnalysis,
     aiSafetyAnalysisStatus: url.aiSafetyAnalysisStatus,
   });

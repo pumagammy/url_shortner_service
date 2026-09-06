@@ -1,5 +1,6 @@
 import { connectDB } from './config/db';
 import express ,{ Application, NextFunction } from "express";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import urlRoutes from "./routes/url-route";
 import authRoutes from "./routes/auth-route";
@@ -16,6 +17,8 @@ const PORT = process.env.PORT || 5000;
 
 //middleware to parse json
 app.use(express.json());
+//middleware to parse cookies
+app.use(cookieParser());
 //middleware to enable CORS
 app.use(corsMiddleware());
 

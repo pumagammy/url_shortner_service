@@ -14,6 +14,7 @@ export interface UrlSafetyResult {
   safetyCheckedAt: Date;
   resolvedUrl?: string;
   redirectChain: string[];
+  linkName?: string | null;
   aiSafetyAnalysis?: AiSafetyAnalysis;
   aiSafetyAnalysisStatus?: "analysing" | "completed" | "failed";
 }
@@ -306,6 +307,7 @@ export const UrlSafetyService = {
       verdict: null,
       confidence: 1,
       reasons: [],
+      linkName: null,
       error: aiSafetyResult.unavailableReason ?? "AI analysis unavailable",
     };
     if (aiSafetyAnalysis.status === "available") {
@@ -323,6 +325,7 @@ export const UrlSafetyService = {
       safetyCheckedAt: new Date(),
       resolvedUrl: page.finalUrl,
       redirectChain: page.redirectChain,
+      linkName: aiSafetyAnalysis.linkName,
       aiSafetyAnalysis,
     };
   },

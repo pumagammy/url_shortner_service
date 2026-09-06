@@ -4,8 +4,9 @@ import { randomUUID } from "node:crypto";
 import { UserRepo } from "../repositories/user-repo";
 import { IUser } from "../models/user-schema";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 const JWT_EXPIRES_IN = "7d";
+
+const getJwtSecret = () => process.env.JWT_SECRET || "dev_secret_change_me";
 
 export interface SignUpInput {
   email: string;
@@ -69,7 +70,7 @@ export const AuthService = {
       isEmailVerified: false,
     });
 
-    const token = jwt.sign({ userId: user.userId, email: user.email }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.userId, email: user.email }, getJwtSecret(), {
       expiresIn: JWT_EXPIRES_IN,
     });
 
@@ -101,7 +102,7 @@ export const AuthService = {
       throw new Error("INVALID_CREDENTIALS");
     }
 
-    const token = jwt.sign({ userId: user.userId, email: user.email }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.userId, email: user.email }, getJwtSecret(), {
       expiresIn: JWT_EXPIRES_IN,
     });
 

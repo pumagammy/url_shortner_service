@@ -6,6 +6,14 @@ export const UrlRepo = {
     return UrlModel.findOne({ shortCode }).exec();
   },
 
+  async findByShortCodeAndUserId(shortCode: string, userId: string): Promise<Iurl | null> {
+    return UrlModel.findOne({ shortCode, userId }).exec();
+  },
+
+  async findByUserId(userId: string): Promise<Iurl[]> {
+    return UrlModel.find({ userId }).sort({ updatedAt: -1 }).exec();
+  },
+
   async existsByShortCode(shortCode: string): Promise<boolean> {
     const exists = await UrlModel.exists({ shortCode });
     return !!exists;

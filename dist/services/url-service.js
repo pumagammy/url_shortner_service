@@ -25,7 +25,10 @@ function isUrlRisky(safety) {
 }
 exports.UrlService = {
     async createShortUrl(input) {
-        const { originalUrl, customCode, isPremium, expiryTime, expiryDate } = input;
+        const { userId, originalUrl, customCode, isPremium, expiryTime, expiryDate } = input;
+        if (!userId) {
+            throw new Error("AUTHENTICATED_USER_REQUIRED");
+        }
         // Validate URL
         if (!originalUrl || !(0, generate_expirydate_1.isValidUrl)(originalUrl)) {
             throw new Error("INVALID_URL");
@@ -76,6 +79,7 @@ exports.UrlService = {
             guid = ulidId;
             shortCode = customCode;
             const created = await url_repo_1.UrlRepo.createUrl({
+                userId,
                 originalUrl,
                 guid,
                 shortCode,
@@ -105,7 +109,7 @@ exports.UrlService = {
                     try {
                         await url_repo_1.UrlRepo.updateByGuid(guid, {
                             aiSafetyAnalysisStatus: "failed",
-                            aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], error: message },
+                            aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], linkName: null, error: message },
                         });
                     }
                     catch (err) {
@@ -124,6 +128,7 @@ exports.UrlService = {
                 const shortUrl = `${base}/${shortCode}`;
                 try {
                     const created = await url_repo_1.UrlRepo.createUrl({
+                        userId,
                         originalUrl,
                         guid,
                         shortUrl,
@@ -149,7 +154,7 @@ exports.UrlService = {
                             try {
                                 await url_repo_1.UrlRepo.updateByGuid(guid, {
                                     aiSafetyAnalysisStatus: "failed",
-                                    aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], error: message },
+                                    aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], linkName: null, error: message },
                                 });
                             }
                             catch (err) {

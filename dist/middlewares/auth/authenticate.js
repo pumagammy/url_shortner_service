@@ -12,6 +12,8 @@ const authenticateToken = (req, res, next) => {
     const tokenFromHeader = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
     const tokenFromCookie = req.cookies?.accessToken || null;
     const token = tokenFromHeader || tokenFromCookie;
+    console.log("Token from header:", tokenFromHeader);
+    console.log("Token from cookie:", tokenFromCookie);
     if (!token) {
         return (0, response_formatters_1.createErrorResponse)(res, "Authentication token is required", response_code_1.STATUS_CODES.unauthorized.code, response_code_1.STATUS_CODES.unauthorized.name);
     }

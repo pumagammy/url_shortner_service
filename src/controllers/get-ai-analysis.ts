@@ -11,6 +11,7 @@ export const getAiAnalysis = async (req: any, res: any) => {
 
   return createSuccessResponse(res, {
     shortCode: url.shortCode,
+    linkName: url.linkName ?? null,
     aiSafetyAnalysis: url.aiSafetyAnalysis,
     aiSafetyAnalysisStatus: url.aiSafetyAnalysisStatus ?? "analysing",
   });

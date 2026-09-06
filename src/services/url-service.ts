@@ -8,6 +8,7 @@ import {
 import { UrlSafetyService, UrlSafetyResult, runBasicUrlChecks } from "./url-safety-service";
 
 interface CreateShortUrlInput {
+  userId: string;
   originalUrl: string;
   customCode?: string | null;
   isPremium: boolean;
@@ -39,7 +40,11 @@ function isUrlRisky(safety: UrlSafetyResult): boolean {
 
 export const UrlService = {
   async createShortUrl(input: CreateShortUrlInput): Promise<Iurl> {
-    const { originalUrl, customCode, isPremium, expiryTime, expiryDate } = input;
+    const { userId, originalUrl, customCode, isPremium, expiryTime, expiryDate } = input;
+
+    if (!userId) {
+      throw new Error("AUTHENTICATED_USER_REQUIRED");
+    }
 
     // Validate URL
     if (!originalUrl || !isValidUrl(originalUrl)) {
@@ -101,6 +106,7 @@ export const UrlService = {
       shortCode = customCode;
 
       const created = await UrlRepo.createUrl({
+        userId,
         originalUrl,
         guid,
         shortCode,
@@ -130,7 +136,7 @@ export const UrlService = {
           try {
             await UrlRepo.updateByGuid(guid, {
               aiSafetyAnalysisStatus: "failed",
-              aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], error: message },
+              aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], linkName: null, error: message },
             } as Partial<Iurl>);
           } catch (err) {
             // ignore persistence errors
@@ -152,6 +158,7 @@ export const UrlService = {
 
         try {
           const created = await UrlRepo.createUrl({
+            userId,
             originalUrl,
             guid,
             shortUrl,
@@ -177,7 +184,7 @@ export const UrlService = {
               try {
                 await UrlRepo.updateByGuid(guid, {
                   aiSafetyAnalysisStatus: "failed",
-                  aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], error: message },
+                  aiSafetyAnalysis: { status: "unavailable", verdict: null, confidence: 1, reasons: [], linkName: null, error: message },
                 } as Partial<Iurl>);
               } catch (err) {
                 // ignore persistence errors
@@ -196,4 +203,3 @@ export const UrlService = {
     }
   },
 };
-

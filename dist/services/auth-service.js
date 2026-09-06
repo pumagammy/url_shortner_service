@@ -8,8 +8,8 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_crypto_1 = require("node:crypto");
 const user_repo_1 = require("../repositories/user-repo");
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 const JWT_EXPIRES_IN = "7d";
+const getJwtSecret = () => process.env.JWT_SECRET || "dev_secret_change_me";
 function sanitizeUser(user) {
     return {
         userId: user.userId,
@@ -45,7 +45,7 @@ exports.AuthService = {
             authProvider: "local",
             isEmailVerified: false,
         });
-        const token = jsonwebtoken_1.default.sign({ userId: user.userId, email: user.email }, JWT_SECRET, {
+        const token = jsonwebtoken_1.default.sign({ userId: user.userId, email: user.email }, getJwtSecret(), {
             expiresIn: JWT_EXPIRES_IN,
         });
         return {
@@ -70,7 +70,7 @@ exports.AuthService = {
         if (!isPasswordValid) {
             throw new Error("INVALID_CREDENTIALS");
         }
-        const token = jsonwebtoken_1.default.sign({ userId: user.userId, email: user.email }, JWT_SECRET, {
+        const token = jsonwebtoken_1.default.sign({ userId: user.userId, email: user.email }, getJwtSecret(), {
             expiresIn: JWT_EXPIRES_IN,
         });
         return {

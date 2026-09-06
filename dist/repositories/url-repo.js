@@ -6,6 +6,12 @@ exports.UrlRepo = {
     async findByShortCode(shortCode) {
         return url_schems_1.UrlModel.findOne({ shortCode }).exec();
     },
+    async findByShortCodeAndUserId(shortCode, userId) {
+        return url_schems_1.UrlModel.findOne({ shortCode, userId }).exec();
+    },
+    async findByUserId(userId) {
+        return url_schems_1.UrlModel.find({ userId }).sort({ updatedAt: -1 }).exec();
+    },
     async existsByShortCode(shortCode) {
         const exists = await url_schems_1.UrlModel.exists({ shortCode });
         return !!exists;

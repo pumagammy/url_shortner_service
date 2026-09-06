@@ -19,7 +19,8 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
   const tokenFromHeader = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
   const tokenFromCookie = req.cookies?.accessToken || null;
   const token = tokenFromHeader || tokenFromCookie;
-
+console.log("Token from header:", tokenFromHeader);
+console.log("Token from cookie:", tokenFromCookie);
   if (!token) {
     return createErrorResponse(
       res,

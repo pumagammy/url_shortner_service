@@ -12,6 +12,7 @@ const getAiAnalysis = async (req, res) => {
     }
     return (0, response_formatters_1.createSuccessResponse)(res, {
         shortCode: url.shortCode,
+        linkName: url.linkName ?? null,
         aiSafetyAnalysis: url.aiSafetyAnalysis,
         aiSafetyAnalysisStatus: url.aiSafetyAnalysisStatus ?? "analysing",
     });

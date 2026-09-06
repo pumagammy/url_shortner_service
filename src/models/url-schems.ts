@@ -1,7 +1,8 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 import { AiSafetyAnalysis, RiskLevel, SafetyStatus } from "../services/url-safety-service";
 
 export interface Iurl extends Document {
+  _id: Types.ObjectId;
   userId?: string | null;
   originalUrl: String;
   guid: string;
@@ -11,6 +12,7 @@ export interface Iurl extends Document {
   isPremium: boolean;
   clicks: number;
   createdAt: Date;
+  updatedAt: Date;
   expiresAt?: Date | null;
   isExpired?: boolean;
   isActive?: boolean;
@@ -21,6 +23,8 @@ export interface Iurl extends Document {
   safetyCheckedAt?: Date;
   resolvedUrl?: string;
   redirectChain: string[];
+  /** Concise website/service name inferred during the safety scan (for example, "YouTube"). */
+  linkName?: string | null;
   aiSafetyAnalysis?: AiSafetyAnalysis;
   aiSafetyAnalysisStatus?: "analysing" | "completed" | "failed";
 }
@@ -57,6 +61,7 @@ const UrlSchema: Schema = new mongoose.Schema<Iurl>(
     safetyCheckedAt: { type: Date },
     resolvedUrl: { type: String, trim: true },
     redirectChain: { type: [String], default: [] },
+    linkName: { type: String, trim: true, maxlength: 100, default: null },
     aiSafetyAnalysis: {
       status: { type: String, enum: ["available", "unavailable"] },
       verdict: { type: String, enum: ["safe", "suspicious", "unsafe"] },

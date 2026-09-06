@@ -7,7 +7,10 @@ const response_code_1 = require("../utils/response/response-code");
 const response_message_1 = require("../utils/response/response-message");
 const createShortCode = async (req, res) => {
     try {
-        const result = await url_service_1.UrlService.createShortUrl(req.body);
+        const result = await url_service_1.UrlService.createShortUrl({
+            ...req.body,
+            userId: req.user?.userId,
+        });
         return (0, response_formatters_1.createSuccessResponse)(res, result, response_message_1.CREATED_DATA);
     }
     catch (err) {

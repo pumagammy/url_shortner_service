@@ -36,6 +36,7 @@ const UrlSchema = new mongoose_1.default.Schema({
     safetyCheckedAt: { type: Date },
     resolvedUrl: { type: String, trim: true },
     redirectChain: { type: [String], default: [] },
+    linkName: { type: String, trim: true, maxlength: 100, default: null },
     aiSafetyAnalysis: {
         status: { type: String, enum: ["available", "unavailable"] },
         verdict: { type: String, enum: ["safe", "suspicious", "unsafe"] },
